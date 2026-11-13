@@ -1,6 +1,26 @@
 document.getElementById("nav").innerHTML=nav("locations.html");
 const $=id=>document.getElementById(id);
-function getLocations(){try{return JSON.parse(localStorage.getItem("weatherLocations")||"[]");}catch{return [];}}
+function getLocations(){
+    try{
+        const locations = JSON.parse(
+            localStorage.getItem("weatherLocations") || "[]"
+        );
+
+        const indianLocations = locations.filter(c =>
+            c.country_code === "IN" ||
+            c.country === "India"
+        );
+
+        localStorage.setItem(
+            "weatherLocations",
+            JSON.stringify(indianLocations)
+        );
+
+        return indianLocations;
+    }catch{
+        return [];
+    }
+}
 function saveLocations(list){localStorage.setItem("weatherLocations",JSON.stringify(list));}
 function addLocation(city){let list=getLocations();if(!list.some(c=>Number(c.latitude)===Number(city.latitude)&&Number(c.longitude)===Number(city.longitude)))list.push(city);saveLocations(list);}
 async function renderLocations(){
@@ -20,7 +40,12 @@ async function renderLocations(){
 }
 $("locationSearch").addEventListener("submit",async e=>{
  e.preventDefault();const q=$("locationInput").value.trim();setNotice("notice","Searching…");
- try{const results=await searchCity(q);const box=$("searchResults");if(!results.length){setNotice("notice","No matching city found.",true);return;}
+ try{const allResults = await searchCity(q);
+
+const results = allResults.filter(c =>
+    c.country_code === "IN" ||
+    c.country === "India"
+);;const box=$("searchResults");if(!results.length){setNotice("No matching Indian city found. Please search within India.",true);return;}
  box.innerHTML=results.map((c,i)=>`<button class="result-option" data-i="${i}">${escapeHtml([c.name,c.admin1,c.country].filter(Boolean).join(", "))}</button>`).join("");
  [...box.querySelectorAll("button")].forEach(b=>b.addEventListener("click",()=>{addLocation(results[Number(b.dataset.i)]);box.innerHTML="";$("locationInput").value="";setNotice("notice","Location added.");renderLocations();}));
  setNotice("notice","Select the city you want to add.");
