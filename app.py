@@ -61,20 +61,38 @@ def serve_page(page):
 @app.get("/api/geocode")
 def geocode():
     name = request.args.get("name", "").strip()
+
     if not name:
         return jsonify({"error": "Please enter a city name."}), 400
+
     try:
         response = requests.get(
             GEOCODING_URL,
-            params={"name": name, "count": 8, "language": "en", "format": "json"},
+            params={
+                "name": name,
+                "count": 8,
+                "language": "en",
+                "format": "json",
+                "countryCode": "IN"
+            },
             timeout=15
         )
+
         response.raise_for_status()
         data = response.json()
-        return jsonify({"results": data.get("results", [])})
-    except requests.RequestException:
-        return jsonify({"error": "Could not search for this location right now."}), 502
 
+        results = [
+            city for city in data.get("results", [])
+            if city.get("country_code") == "IN"
+        ]
+
+        return jsonify({"results": results})
+
+    except requests.RequestException:
+        return jsonify({
+            "error": "Could not search for this location right now."
+        }), 502
+        
 @app.get("/api/weather")
 def weather():
     try:
