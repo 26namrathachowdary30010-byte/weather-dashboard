@@ -32,10 +32,13 @@ $("citySearch").addEventListener("submit",async e=>{
   e.preventDefault();const q=$("cityInput").value.trim();if(!q)return;
   setNotice("notice","Searching for locations…");
   try{
-    const results=await searchCity(q);const box=$("searchResults");
-    if(!results.length){box.innerHTML="";setNotice("notice","No matching city found. Try adding a country name.",true);return;}
-    box.innerHTML=results.map((c,i)=>`<button class="result-option" data-i="${i}">${escapeHtml([c.name,c.admin1,c.country].filter(Boolean).join(", "))}</button>`).join("");
-    [...box.querySelectorAll("button")].forEach(b=>b.addEventListener("click",()=>{const c=results[Number(b.dataset.i)];saveCity(c);box.innerHTML="";loadDashboard(c);}));
+    const results=await searchCity(q);const indianResults = results.filter(c =>
+    c.country_code === "IN" ||
+    c.country === "India"
+);const box=$("searchResults");
+    if(!indianResults.length){box.innerHTML="";setNotice("notice","No matching city found. Try adding a country name.",true);return;}
+    box.innerHTML=indianResults.map((c,i)=>`<button class="result-option" data-i="${i}">${escapeHtml([c.name,c.admin1,c.country].filter(Boolean).join(", "))}</button>`).join("");
+    [...box.querySelectorAll("button")].forEach(b=>b.addEventListener("click",()=>{const c=indianResults[Number(b.dataset.i)];saveCity(c);box.innerHTML="";loadDashboard(c);}));
     setNotice("notice","Choose a location from the results.");
   }catch(err){setNotice("notice",err.message,true);}
 });
